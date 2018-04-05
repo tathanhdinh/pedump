@@ -5,11 +5,6 @@ authors = ["Ta Thanh Dinh <tathanhdinh@gmail.com>"]
 
 [dependencies]
 # goblin = { git = "https://github.com/m4b/goblin.git" }
-<<<<<<< HEAD
 goblin = { path = "../goblin_tathanhdinh" }
-=======
-# goblin = { git = "https://github.com/tathanhdinh/goblin.git" }
-goblin = { path = "../goblin" }
->>>>>>> df0f8b21e99e2c4c5de764540707186220ef070f
 clap = { git = "https://github.com/kbknapp/clap-rs.git" }
 failure = { git = "https://github.com/rust-lang-nursery/failure.git" }
