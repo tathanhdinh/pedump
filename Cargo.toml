@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Ta Thanh Dinh <tathanhdinh@gmail.com>"]
 
 [dependencies]
-goblin = { git = "https://github.com/m4b/goblin.git" }
+# goblin = { git = "https://github.com/m4b/goblin.git" }
+goblin = { path = "../goblin_tathanhdinh" }
 clap = { git = "https://github.com/kbknapp/clap-rs.git" }
 failure = { git = "https://github.com/rust-lang-nursery/failure.git" }

@@ -14,6 +14,7 @@ static APPLICATION_AUTHOR: &'static str = "TA Thanh Dinh <tathanhdinh@gmail.com>
 static APPLICATION_ABOUT: &'static str = "A PE dumper";
 
 static ARGUMENT_FILE: &'static str = "input file";
+static ARGUMENT_EXPORT_DATA_DIR: &'static str = "dump export data directory";
 
 fn main() {
     match run() {
@@ -35,6 +36,9 @@ fn run() -> Result<(), failure::Error> {
         .arg(clap::Arg::with_name(ARGUMENT_FILE)
                 .required(true)
                 .index(1))
+        .arg(clap::Arg::with_name(ARGUMENT_EXPORT_DATA_DIR)
+                .short("e")
+                .long("export"))
         .get_matches();
 
     let input_file = matches.value_of(ARGUMENT_FILE).unwrap(); // should not panic
@@ -45,13 +49,19 @@ fn run() -> Result<(), failure::Error> {
         fd.read_to_end(&mut buffer)?;
         let pe_object = goblin::pe::PE::parse(&buffer)?;
         // println!("PE {:#?}", &pe_object);
-        dump_pe(&pe_object)?;
+        if matches.is_present(ARGUMENT_EXPORT_DATA_DIR) {
+            dump_pe(&pe_object, true, false)?;
+        }
+        else {
+            dump_pe(&pe_object, false, false)?;
+        }
+        
     }
 
     Ok(())
 }
 
-fn dump_pe(pe_object: &goblin::pe::PE) -> Result<(), failure::Error> {
+fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, verbose: bool) -> Result<(), failure::Error> {
     // println!("{}", )
     if pe_object.is_64 {
         println!("{}", "PE32+");
