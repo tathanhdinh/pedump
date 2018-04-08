@@ -8,3 +8,5 @@ authors = ["Ta Thanh Dinh <tathanhdinh@gmail.com>"]
 goblin = { path = "../goblin_tathanhdinh" }
 clap = { git = "https://github.com/kbknapp/clap-rs.git" }
 failure = { git = "https://github.com/rust-lang-nursery/failure.git" }
+tabwriter = { git = "https://github.com/BurntSushi/tabwriter.git" }
+chrono = { git = "https://github.com/chronotope/chrono.git" }
