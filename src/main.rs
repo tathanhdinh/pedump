@@ -17,10 +17,11 @@ static APPLICATION_ABOUT: &'static str = "A PE dumper";
 
 static ARGUMENT_FILE: &'static str = "input file";
 static ARGUMENT_EXPORT_DATA_DIR: &'static str = "dump export data directory";
+static ARGUMENT_VERBOSE: &'static str = "verbose";
 
 fn main() {
     if let Err(err) = run() {
-        println!("Error: {}", err);
+        println!("{}", err);
     }
 }
 
@@ -35,6 +36,9 @@ fn run() -> Result<(), failure::Error> {
         .arg(clap::Arg::with_name(ARGUMENT_EXPORT_DATA_DIR)
                 .short("e")
                 .long("export"))
+        .arg(clap::Arg::with_name(ARGUMENT_VERBOSE)
+                .short("v")
+                .long("verbose"))
         .get_matches();
 
     let input_file = matches.value_of(ARGUMENT_FILE).unwrap(); // should not panic
@@ -46,28 +50,19 @@ fn run() -> Result<(), failure::Error> {
         let pe_object = goblin::pe::PE::parse(&buffer)?;
         // println!("PE {:#?}", &pe_object);
 
-        if matches.is_present(ARGUMENT_EXPORT_DATA_DIR) {
-            dump_pe(&pe_object, true, false)?;
-        }
-        else {
-            dump_pe(&pe_object, false, false)?;
-        }
+        let show_verbose = matches.is_present(ARGUMENT_VERBOSE);
+        let show_export = matches.is_present(ARGUMENT_EXPORT_DATA_DIR);
+
+        dump_pe(&pe_object, show_export, show_verbose)?;
     }
 
     Ok(())
 }
 
-fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, verbose: bool) -> Result<(), failure::Error> {
+fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) -> Result<(), failure::Error> {
     let lib_or_exe = if pe_object.is_lib { "library" } else { "executable" };
     let arch = if pe_object.is_64 { "PE32+" } else { "PE32" };
     println!("{} {}", arch, lib_or_exe);
-
-    // if pe_object.is_64 {
-    //     println!("{}", "PE32+");
-    // }
-    // else {
-    //     println!("{}", "PE32");
-    // }
 
     if show_export {
         if let Some(ref export) = pe_object.export_data {
@@ -95,6 +90,41 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, verbose: bool) -> Resu
             let mut tw = tabwriter::TabWriter::new(std::io::stdout()).padding(4);
             writeln!(&mut tw, "{}", output_format_strs.join("\r\n"))?;
             tw.flush()?;
+
+            if show_verbose {
+                let entry_num = pe_object.exports.len();
+                print!("Exported entries: {}...", entry_num);
+                std::io::stdout().flush()?;
+                if entry_num > 0 {
+                    let _ = std::io::stdin().read(&mut [0x0u8])?;
+                    println!("");
+                    // std::io::stdin().lock().lines();
+
+                    output_format_strs.clear();
+
+                    let mut export_str = Vec::new();
+                    for export in &pe_object.exports {
+                        let name = if let Some(ref name) = export.name { name } else { "unknown" };
+                        export_str.push(format!("  Name:\t{}", name));
+
+                        let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "not found".to_string() };
+                        export_str.push(format!("  Rva:\t{}", &rva));
+
+                        let offset = if let Some(ref offset) = export.offset { format!("0x{:x}", offset) } else { "invalid".to_string() };
+                        export_str.push(format!("  File offset:\t{}", &offset));
+
+                        let reexport = if export.reexport.is_none() { "no" } else { "yes" };
+                        export_str.push(format!("  Re-export:\t{}", &reexport));
+
+                        output_format_strs.push(export_str.join("\r\n"));
+                        export_str.clear();
+                    }
+
+                    let mut tw = tabwriter::TabWriter::new(std::io::stdout()).padding(2);
+                    writeln!(&mut tw, "{}", output_format_strs.join("\n\n"))?;
+                    tw.flush()?;
+                }
+            }
 
             Ok(())
         }
