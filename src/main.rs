@@ -104,7 +104,10 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
 
                     let mut export_str = Vec::new();
                     for export in &pe_object.exports {
-                        let name = if let Some(ref name) = export.name { name } else { "unknown" };
+                        let name = 
+                            if let Some(ref name) = export.name { 
+                                if name.is_empty() { "empty" } else { name } 
+                            } else { "unknown" };
                         export_str.push(format!("  Name:\t{}", name));
 
                         let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "not found".to_string() };
