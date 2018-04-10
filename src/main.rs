@@ -68,7 +68,7 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
         if let Some(ref export) = pe_object.export_data {
             // show export directory table
             let name = if let Some(ref name) = export.name { name } else { "name not found" };
-            println!("Export Directory ({})", name);
+            println!("Export directory ({})", name);
 
             let mut output_format_strs = Vec::new();
 
@@ -106,14 +106,14 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
                     for export in &pe_object.exports {
                         let name = 
                             if let Some(ref name) = export.name { 
-                                if name.is_empty() { "empty" } else { name } 
-                            } else { "unknown" };
+                                if name.is_empty() { "*empty*" } else { name } 
+                            } else { "*unknown*" };
                         export_str.push(format!("  Name:\t{}", name));
 
-                        let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "not found".to_string() };
+                        let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "*not found*".to_string() };
                         export_str.push(format!("  Rva:\t{}", &rva));
 
-                        let offset = if let Some(ref offset) = export.offset { format!("0x{:x}", offset) } else { "invalid".to_string() };
+                        let offset = if let Some(ref offset) = export.offset { format!("0x{:x}", offset) } else { "*invalid*".to_string() };
                         export_str.push(format!("  File offset:\t{}", &offset));
 
                         let reexport = if export.reexport.is_none() { "no" } else { "yes" };
