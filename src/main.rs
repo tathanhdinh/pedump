@@ -7,9 +7,6 @@ extern crate chrono;
 use std::io::{Read, Write};
 // use failure::{Error};
 
-// #[macro_use] extern crate failure_derive;
-
-
 static APPLICATION_NAME: &'static str = "pedump";
 static APPLICATION_VERSION: &'static str = "0.1.0";
 static APPLICATION_AUTHOR: &'static str = "TA Thanh Dinh <tathanhdinh@gmail.com>";
@@ -47,6 +44,17 @@ fn run() -> Result<(), failure::Error> {
         let mut fd = std::fs::File::open(input_file)?;
         let mut buffer = Vec::new();
         fd.read_to_end(&mut buffer)?;
+
+        let mut count = 0;
+        for b in &buffer {
+            print!("0x{:02x}, ", b);
+            count = count + 1;
+            if count % 0x10 == 0 {
+                println!("");
+                count = 0;
+            }
+        }
+
         let pe_object = goblin::pe::PE::parse(&buffer)?;
         // println!("PE {:#?}", &pe_object);
 
@@ -132,9 +140,8 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
             Ok(())
         }
         else {
-            // println!("{}", "The ")
             // failure::err_msg("sdfsdf")
-            format_err!("Export directory not found")
+            Err(format_err!("Export directory not found"))
         }
     }
     else {
