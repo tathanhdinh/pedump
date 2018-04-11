@@ -134,7 +134,7 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
         else {
             // println!("{}", "The ")
             // failure::err_msg("sdfsdf")
-            Err(format_err!("Export directory not found"))
+            format_err!("Export directory not found")
         }
     }
     else {
