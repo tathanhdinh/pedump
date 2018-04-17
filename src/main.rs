@@ -45,15 +45,15 @@ fn run() -> Result<(), failure::Error> {
         let mut buffer = Vec::new();
         fd.read_to_end(&mut buffer)?;
 
-        let mut count = 0;
-        for b in &buffer {
-            print!("0x{:02x}, ", b);
-            count = count + 1;
-            if count % 0x10 == 0 {
-                println!("");
-                count = 0;
-            }
-        }
+        // let mut count = 0;
+        // for b in &buffer {
+        //     print!("0x{:02x}, ", b);
+        //     count = count + 1;
+        //     if count % 0x10 == 0 {
+        //         println!("");
+        //         count = 0;
+        //     }
+        // }
 
         let pe_object = goblin::pe::PE::parse(&buffer)?;
         // println!("PE {:#?}", &pe_object);
@@ -68,15 +68,20 @@ fn run() -> Result<(), failure::Error> {
 }
 
 fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) -> Result<(), failure::Error> {
+    let locked_stdout = std::io::stdout();
+    let mut locked_stdout = locked_stdout.lock();
+
     let lib_or_exe = if pe_object.is_lib { "library" } else { "executable" };
     let arch = if pe_object.is_64 { "PE32+" } else { "PE32" };
-    println!("{} {}", arch, lib_or_exe);
+    // println!("{} {}", arch, lib_or_exe);
+    writeln!(locked_stdout, "{} {}", arch, lib_or_exe)?;
 
     if show_export {
         if let Some(ref export) = pe_object.export_data {
             // show export directory table
             let name = if let Some(ref name) = export.name { name } else { "name not found" };
-            println!("Export directory ({})", name);
+            // println!("Export directory ({})", name);
+            writeln!(locked_stdout, "Export directory ({})", name)?;
 
             let mut output_format_strs = Vec::new();
 
@@ -101,12 +106,15 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
 
             if show_verbose {
                 let entry_num = pe_object.exports.len();
-                print!("Exported entries: {}...", entry_num);
-                std::io::stdout().flush()?;
+                // print!("Exported entries: {}...", entry_num);
+                write!(locked_stdout, "Exported entries: {}...", entry_num)?;
+                locked_stdout.flush()?;
+                // std::io::stdout().flush()?;
                 if entry_num > 0 {
                     let _ = std::io::stdin().read(&mut [0x0u8])?;
-                    println!("");
+                    // println!("");
                     // std::io::stdin().lock().lines();
+                    writeln!(locked_stdout, "")?;
 
                     output_format_strs.clear();
 
