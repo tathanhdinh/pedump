@@ -105,44 +105,51 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
             tw.flush()?;
 
             if show_verbose {
-                let entry_num = pe_object.exports.len();
-                // print!("Exported entries: {}...", entry_num);
-                write!(locked_stdout, "Exported entries: {}...", entry_num)?;
-                locked_stdout.flush()?;
-                // std::io::stdout().flush()?;
-                if entry_num > 0 {
-                    let _ = std::io::stdin().read(&mut [0x0u8])?;
-                    // println!("");
-                    // std::io::stdin().lock().lines();
-                    writeln!(locked_stdout, "")?;
+                write!(locked_stdout, "Exported entries: ")?;
+                if let Some(ref exports) = pe_object.exports {
+                    let entry_num = exports.len();
+                    if entry_num > 0 {
+                        write!(locked_stdout, "{}...", entry_num)?;
+                        locked_stdout.flush()?;
+                        let _ = std::io::stdin().read(&mut [0x0u8])?;
+                        writeln!(locked_stdout, "")?;
 
-                    output_format_strs.clear();
+                        output_format_strs.clear();
 
-                    let mut export_str = Vec::new();
-                    for export in &pe_object.exports {
-                        let name = 
-                            if let Some(ref name) = export.name { 
-                                if name.is_empty() { "*empty*" } else { name } 
-                            } else { "*unknown*" };
-                        export_str.push(format!("  Name:\t{}", name));
+                        let mut export_str = Vec::new();
+                        for export in exports {
+                            let name = 
+                                if let Some(ref name) = export.name { 
+                                    if name.is_empty() { "*empty*" } else { name } 
+                                } else { "*unknown*" };
+                            export_str.push(format!("  Name:\t{}", name));
 
-                        let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "*not found*".to_string() };
-                        export_str.push(format!("  Rva:\t{}", &rva));
+                            let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "*not found*".to_string() };
+                            export_str.push(format!("  Rva:\t{}", &rva));
 
-                        let offset = if let Some(ref offset) = export.offset { format!("0x{:x}", offset) } else { "*invalid*".to_string() };
-                        export_str.push(format!("  File offset:\t{}", &offset));
+                            let offset = if let Some(ref offset) = export.offset { format!("0x{:x}", offset) } else { "*invalid*".to_string() };
+                            export_str.push(format!("  File offset:\t{}", &offset));
 
-                        let reexport = if export.reexport.is_none() { "no" } else { "yes" };
-                        export_str.push(format!("  Re-export:\t{}", &reexport));
+                            let reexport = if export.reexport.is_none() { "no" } else { "yes" };
+                            export_str.push(format!("  Re-export:\t{}", &reexport));
 
-                        output_format_strs.push(export_str.join("\r\n"));
-                        export_str.clear();
+                            output_format_strs.push(export_str.join("\r\n"));
+                            export_str.clear();
+                        }
+
+                        let mut tw = tabwriter::TabWriter::new(std::io::stdout()).padding(2);
+                        writeln!(&mut tw, "{}", output_format_strs.join("\n\n"))?;
+                        tw.flush()?;
                     }
-
-                    let mut tw = tabwriter::TabWriter::new(std::io::stdout()).padding(2);
-                    writeln!(&mut tw, "{}", output_format_strs.join("\n\n"))?;
-                    tw.flush()?;
+                    else {
+                        write!(locked_stdout, "0")?;
+                    }
                 }
+                else {
+                    write!(locked_stdout, "None")?;
+                }
+
+                
             }
 
             Ok(())
