@@ -95,7 +95,7 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
             output_format_strs.push(format!("Name rva:\t0x{:x}", dir_table.name_rva));
             output_format_strs.push(format!("Ordinal base:\t{}", dir_table.ordinal_base));
             output_format_strs.push(format!("Address table entries:\t{}", dir_table.address_table_entries));
-            output_format_strs.push(format!("Number of name pointer:\t{}", dir_table.number_of_name_pointers));
+            output_format_strs.push(format!("Number of name pointers:\t{}", dir_table.number_of_name_pointers));
             output_format_strs.push(format!("Export address table rva:\t0x{:x}", dir_table.export_address_table_rva));
             output_format_strs.push(format!("Name pointer rva:\t0x{:x}", dir_table.name_pointer_rva));
             output_format_strs.push(format!("Ordinal table rva:\t0x{:x}", dir_table.ordinal_table_rva));
@@ -105,7 +105,7 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
             tw.flush()?;
 
             if show_verbose {
-                write!(locked_stdout, "Exported entries: ")?;
+                write!(locked_stdout, "Entries exported by name: ")?;
                 if let Some(ref exports) = pe_object.exports {
                     let entry_num = exports.len();
                     if entry_num > 0 {
@@ -116,29 +116,36 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
 
                         output_format_strs.clear();
 
-                        let mut export_str = Vec::new();
+                        // let mut export_str = Vec::new();
+
+                        // export_str.push("Name\tRVA\tFile offset\tRe-export");
+                        output_format_strs.push("Name\tRVA\tFile offset\tRe-export".to_string());
+
                         for export in exports {
                             let name = 
                                 if let Some(ref name) = export.name { 
                                     if name.is_empty() { "*empty*" } else { name } 
                                 } else { "*unknown*" };
-                            export_str.push(format!("  Name:\t{}", name));
+                            // export_str.push(format!("  Name:\t{}", name));
 
                             let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "*not found*".to_string() };
-                            export_str.push(format!("  Rva:\t{}", &rva));
+                            // export_str.push(format!("  Rva:\t{}", &rva));
 
                             let offset = if let Some(ref offset) = export.offset { format!("0x{:x}", offset) } else { "*invalid*".to_string() };
-                            export_str.push(format!("  File offset:\t{}", &offset));
+                            // export_str.push(format!("  File offset:\t{}", &offset));
 
                             let reexport = if export.reexport.is_none() { "no" } else { "yes" };
-                            export_str.push(format!("  Re-export:\t{}", &reexport));
+                            // export_str.push(format!("  Re-export:\t{}", &reexport));
 
-                            output_format_strs.push(export_str.join("\r\n"));
-                            export_str.clear();
+                            // export_str.push(format!("{}\t{}\t{}\t{}", &name, &rva, &offset, &reexport));
+
+                            // output_format_strs.push(export_str.join("\r\n"));
+                            output_format_strs.push(format!("{}\t{}\t{}\t{}", &name, &rva, &offset, &reexport));
+                            // export_str.clear();
                         }
 
-                        let mut tw = tabwriter::TabWriter::new(std::io::stdout()).padding(2);
-                        writeln!(&mut tw, "{}", output_format_strs.join("\n\n"))?;
+                        let mut tw = tabwriter::TabWriter::new(std::io::stdout()).padding(4);
+                        writeln!(&mut tw, "{}", output_format_strs.join("\r\n"))?;
                         tw.flush()?;
                     }
                     else {
