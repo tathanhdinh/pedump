@@ -106,7 +106,8 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
 
             if show_verbose {
                 write!(locked_stdout, "Entries exported by name: ")?;
-                if let Some(ref exports) = pe_object.exports {
+                // if let Some(ref exports) = pe_object.exports {
+                    let exports = &pe_object.exports;
                     let entry_num = exports.len();
                     if entry_num > 0 {
                         write!(locked_stdout, "{}...", entry_num)?;
@@ -128,11 +129,13 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
                                 } else { "*unknown*" };
                             // export_str.push(format!("  Name:\t{}", name));
 
-                            let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "*not found*".to_string() };
+                            // let rva = if let Some(ref rva) = export.rva { format!("0x{:x}", rva) } else { "*not found*".to_string() };
                             // export_str.push(format!("  Rva:\t{}", &rva));
+                            let rva = export.rva;
 
-                            let offset = if let Some(ref offset) = export.offset { format!("0x{:x}", offset) } else { "*invalid*".to_string() };
+                            // let offset = if let Some(ref offset) = export.offset { format!("0x{:x}", offset) } else { "*invalid*".to_string() };
                             // export_str.push(format!("  File offset:\t{}", &offset));
+                            let offset = export.offset;
 
                             let reexport = if export.reexport.is_none() { "no" } else { "yes" };
                             // export_str.push(format!("  Re-export:\t{}", &reexport));
@@ -140,7 +143,7 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
                             // export_str.push(format!("{}\t{}\t{}\t{}", &name, &rva, &offset, &reexport));
 
                             // output_format_strs.push(export_str.join("\r\n"));
-                            output_format_strs.push(format!("{}\t{}\t{}\t{}", &name, &rva, &offset, &reexport));
+                            output_format_strs.push(format!("{}\t{}\t{}\t{}", &name, rva, offset, &reexport));
                             // export_str.clear();
                         }
 
@@ -151,10 +154,10 @@ fn dump_pe(pe_object: &goblin::pe::PE, show_export: bool, show_verbose: bool) ->
                     else {
                         write!(locked_stdout, "0")?;
                     }
-                }
-                else {
-                    write!(locked_stdout, "None")?;
-                }
+                // }
+                // else {
+                //     write!(locked_stdout, "None")?;
+                // }
 
                 
             }
